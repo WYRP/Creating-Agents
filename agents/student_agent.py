@@ -1,6 +1,7 @@
 # Student agent: Add your own agent here
 import math
 
+import world
 from agents.agent import Agent
 from store import register_agent
 import sys
@@ -54,24 +55,38 @@ class StudentAgent(Agent):
         return my_pos, self.dir_map["u"]
 
 
-class MCT():
-    def __init__(self):
-        self.total_util = 0
-        self.num_rollout = 0
-        self.count = 0
-        self.parent = None
-        self.C = 1.4
-        self.current = None
+'''
+    wanted to use a list to represent the MCTS tree, but since it is not a binary tree
+    That idea would not work. So making a class like this would make more sense, cuz each node
+    now would be an object of class Node'''
+class Node():
+    def __init__(self, current, parent, children = []):
+        self.current = current
+        self.parent = parent
+        self.children = children
+        # set the root as the position of the current player.
+        self.root = world.get_current_player()
+    def expand_children(self):
+        child = Node(self.current, self.parent, self.children)
+        return child
 
 
 
 
-    def UCT(self, total_util, num_rollout,count,parent,C):
-        exploitation = total_util/num_rollout
-        exploration = math.sqrt(math.log(count,parent)/count)
-        UCB1 = exploitation + C * exploration
-        return UCB1
+def selection(self, root, current):
+    tree = []
+    current = root
+    tree.append(current)
+    left_c = None
+    right_c = None
+    tree.append(left_c)
+    tree.append(right_c)
 
-    def selection(self):
+def UCT(self, total_util, num_rollout,count,parent,C):
+    exploitation = total_util/num_rollout
+    exploration = math.sqrt(math.log(count,parent)/count)
+    UCB1 = exploitation + C * exploration
+    return UCB1
+
 
 

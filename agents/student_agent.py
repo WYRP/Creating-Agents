@@ -1,4 +1,6 @@
 # Student agent: Add your own agent here
+import math
+
 from agents.agent import Agent
 from store import register_agent
 import sys
@@ -50,3 +52,26 @@ class StudentAgent(Agent):
 
         # dummy return
         return my_pos, self.dir_map["u"]
+
+
+class MCT():
+    def __init__(self):
+        self.total_util = 0
+        self.num_rollout = 0
+        self.count = 0
+        self.parent = None
+        self.C = 1.4
+        self.current = None
+
+
+
+
+    def UCT(self, total_util, num_rollout,count,parent,C):
+        exploitation = total_util/num_rollout
+        exploration = math.sqrt(math.log(count,parent)/count)
+        UCB1 = exploitation + C * exploration
+        return UCB1
+
+    def selection(self):
+
+

@@ -61,33 +61,54 @@ class StudentAgent(Agent):
     now would be an object of class Node'''
 
 
-class Node():
-    def __init__(self, current, parent, children=[]):
-        self.current = current
+import math
+from world import World
+
+class Node:
+    def __init__(self, state, parent=None, move=None):
+        self.state = state
         self.parent = parent
-        self.children = children
+        self.move = move
+        self.children = []
         self.num_visited = 0
-        self.expended = False
+        self.num_rollout = 0
         self.utility_sc = 0
 
-    def expand_children(self):
-        child = Node(self.current, self.parent, self.children, self.num_visited, self.expended, self.utility_sc)
-        return child
+    def add_child(self, move, state):
+        child_node = Node(state, self, move)
+        self.children.append(child_node)
+        return child_node
 
+    def is_fully_expanded(self):
+        return all(child.num_visited > 0 for child in self.children)
 
-num_rollout = 0
-count = 0
-C = 1.4
+    def best_child(self, c_param=C):
+        choices_weights = [
+            (child.utility_sc / child.num_rollout) + c_param * math.sqrt((2 * math.log(self.num_visited) / child.num_rollout))
+            for child in self.children
+        ]
+        return self.children[np.argmax(choices_weights)]
 
+    def rollout_policy(self):
+        # Implementation of the rollout policy to evaluate utility score
+        pass
 
-def selection(self):
-    root = world.get_current_player()
-    current = Node(root,None,[])
+    def rollout(self):
+        # Implementation of a rollout (simulation)
+        pass
 
+    def backprop(self, result):
+        # Update utility scores and visit counts
+        self.num_visited += 1
+        self.utility_sc += result
+        if self.parent:
+            self.parent.backprop(result)
 
-
-def UCT(self, total_util, num_rollout, count, parent, C):
-    exploitation = total_util / num_rollout
-    exploration = math.sqrt(math.log(count, parent) / count)
-    UCB1 = exploitation + C * exploration
-    return UCB1
+# Usage
+root = Node(World.get_current_state())
+current_node = root
+while not current_node.is_terminal_node():
+    while not current_node.is_fully_expanded():
+        current_node = current_node.expand()
+    current_node = current_node.best_child()
+    current_node.rollout()

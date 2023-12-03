@@ -10,105 +10,56 @@ from copy import deepcopy
 import time
 
 
+from queue import Queue
+import time
+from world import World  # Import the World class
+
+
 @register_agent("student_agent")
 class StudentAgent(Agent):
-    """
-    A dummy class for your implementation. Feel free to use this class to
-    add any helper functionalities needed for your agent.
-    """
-
     def __init__(self):
         super(StudentAgent, self).__init__()
         self.name = "StudentAgent"
-        self.dir_map = {
-            "u": 0,
-            "r": 1,
-            "d": 2,
-            "l": 3,
-        }
+        self.dir_map = {"u": 0, "r": 1, "d": 2, "l": 3}
+
+
+    def bfs_with_heuristic(self, chess_board, my_pos, adv_pos, max_step):
+        queue = Queue()
+        queue.put((my_pos, 0))  # (position, depth)
+        best_score = float('-inf')
+        best_move = None
+
+        while not queue.empty():
+            current_pos, depth = queue.get()
+            if depth >= max_step:
+                continue
+
+            for move in get_legal_moves(chess_board, current_pos, max_step):
+                new_pos = apply_move(current_pos, move)
+                score = self.heuristic(chess_board, new_pos, adv_pos)
+                
+                if score > best_score:
+                    best_score = score
+                    best_move = move
+
+                if not is_terminal(chess_board, new_pos):
+                    queue.put((new_pos, depth + 1))
+
+        return best_move
+    
+    def is_move_valid(self, chess_board, best_move, barrier_dir):
+        # Adapt the logic from check_valid_step here
+        # You may need to adjust the parameters and logic to match your agent's needs
+        return valid  # Return True if the move is valid, False otherwise
 
     def step(self, chess_board, my_pos, adv_pos, max_step):
-        """
-        Implement the step function of your agent here.
-        You can use the following variables to access the chess board:
-        - chess_board: a numpy array of shape (x_max, y_max, 4)
-        - my_pos: a tuple of (x, y)
-        - adv_pos: a tuple of (x, y)
-        - max_step: an integer
-
-        You should return a tuple of ((x, y), dir),
-        where (x, y) is the next position of your agent and dir is the direction of the wall
-        you want to put on.
-
-        Please check the sample implementation in agents/random_agent.py or agents/human_agent.py for more details.
-        """
-
-        # Some simple code to help you with timing. Consider checking 
-        # time_taken during your search and breaking with the best answer
-        # so far when it nears 2 seconds.
         start_time = time.time()
+        # Call BFS with Heuristic
+        best_move = self.bfs_with_heuristic(chess_board, my_pos, adv_pos, max_step)
         time_taken = time.time() - start_time
-
         print("My AI's turn took ", time_taken, "seconds.")
 
-        # dummy return
-        return my_pos, self.dir_map["u"]
+        return best_move, self.dir_map["u"]
 
+current_player_obj, current_player_pos, adversary_player_pos = world.get_current_positions()
 
-'''
-    wanted to use a list to represent the MCTS tree, but since it is not a binary tree
-    That idea would not work. So making a class like this would make more sense, cuz each node
-    now would be an object of class Node'''
-
-
-import math
-from world import World
-
-class Node:
-    def __init__(self, state, parent=None, move=None):
-        self.state = state
-        self.parent = parent
-        self.move = move
-        self.children = []
-        self.num_visited = 0
-        self.num_rollout = 0
-        self.utility_sc = 0
-
-    def add_child(self, move, state):
-        child_node = Node(state, self, move)
-        self.children.append(child_node)
-        return child_node
-
-    def is_fully_expanded(self):
-        return all(child.num_visited > 0 for child in self.children)
-
-    def best_child(self, c_param=C):
-        choices_weights = [
-            (child.utility_sc / child.num_rollout) + c_param * math.sqrt((2 * math.log(self.num_visited) / child.num_rollout))
-            for child in self.children
-        ]
-        return self.children[np.argmax(choices_weights)]
-
-    def rollout_policy(self):
-        # Implementation of the rollout policy to evaluate utility score
-        pass
-
-    def rollout(self):
-        # Implementation of a rollout (simulation)
-        pass
-
-    def backprop(self, result):
-        # Update utility scores and visit counts
-        self.num_visited += 1
-        self.utility_sc += result
-        if self.parent:
-            self.parent.backprop(result)
-
-# Usage
-root = Node(World.get_current_state())
-current_node = root
-while not current_node.is_terminal_node():
-    while not current_node.is_fully_expanded():
-        current_node = current_node.expand()
-    current_node = current_node.best_child()
-    current_node.rollout()
